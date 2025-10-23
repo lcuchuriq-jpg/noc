@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Panel de Reportes Combinados</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: 'JetBrains Mono', monospace;
+      background: linear-gradient(135deg, #081026, #8E1F1B);
+      color: #f0f0f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+    }
+
+    h2 {
+      color: #ffc107;
+      margin: 0 0 20px;
+      text-shadow: 0 0 8px #ffc107aa;
+      font-size: 1.8rem;
+    }
+
+    .seccion {
+      background-color: rgba(0, 0, 0, 0.5);
+      padding: 25px 30px;
+      width: 100%;
+      max-width: 720px;
+      border-radius: 14px;
+      box-shadow: 0 0 20px #8E1F1Baa;
+      backdrop-filter: saturate(180%) blur(15px);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      user-select: none;
+    }
+
+    label {
+      font-size: 14px;
+      font-weight: 600;
+      user-select: text;
+    }
+
+    textarea, input, select {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      border-radius: 8px;
+      border: none;
+      padding: 12px 15px;
+      color: #f0f0f0;
+      background-color: #111;
+      box-shadow: inset 0 0 5px #000000aa;
+      resize: vertical;
+      outline-offset: 2px;
+      outline-color: #8E1F1B;
+      transition: box-shadow 0.3s ease, background-color 0.3s ease;
+    }
+
+    textarea {
+      min-height: 150px;
+      max-height: 300px;
+    }
+
+    textarea[readonly] {
+      cursor: pointer;
+      user-select: all;
+      background-color: #222;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      box-shadow: 0 0 8px #ffc107;
+      background-color: #1a1a1a;
+      outline: none;
+    }
+
+    .fila {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 15px;
+      align-items: center;
+      font-weight: 500;
+      user-select: text;
+    }
+
+    .fila label {
+      flex: 1 1 210px;
+      min-width: 150px;
+    }
+
+    .fila input {
+      flex: 1 1 100px;
+      min-width: 80px;
+      text-align: center;
+    }
+
+    .fila select {
+      flex: 1 1 100px;
+      min-width: 90px;
+      cursor: pointer;
+    }
+
+    button {
+      background-color: #5E1A20;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.15s ease;
+      user-select: none;
+      box-shadow: 0 4px 10px #8E1F1Bbb;
+    }
+
+    button:hover {
+      background-color: #8E1F1B;
+      transform: scale(1.05);
+    }
+
+    button:active {
+      transform: scale(0.95);
+    }
+
+    .botonera {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    #mensajeCopiado, #mensajeGenerado {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      padding: 14px 22px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      display: none;
+      z-index: 1100;
+      user-select: none;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+      opacity: 0;
+      animation-fill-mode: forwards;
+    }
+
+    #mensajeCopiado {
+      background-color: #28a745;
+      color: white;
+      box-shadow: 0 0 15px #28a745cc;
+    }
+
+    #mensajeGenerado {
+      background-color: #ffc107;
+      color: #000;
+      box-shadow: 0 0 15px #ffc107cc;
+    }
+
+    @keyframes fadeInOut {
+      0% {opacity: 0;}
+      10% {opacity: 1;}
+      90% {opacity: 1;}
+      100% {opacity: 0;}
+    }
+
+    .mostrar {
+      display: block !important;
+      animation: fadeInOut 2s ease forwards;
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 15px 10px;
+      }
+      .seccion {
+        padding: 20px 15px;
+      }
+      .fila label {
+        flex-basis: 100%;
+        margin-bottom: 5px;
+      }
+      .fila input, .fila select {
+        flex-basis: 100%;
+      }
+      .botonera {
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- XTREAM REPORT -->
+  <section class="seccion" aria-label="Reporte XTREAM">
+    <h2>REPORTE XTREAM</h2>
+    <label for="inputDatos">📋 Pega aquí los datos del reporte:</label>
+    <textarea id="inputDatos" placeholder="Ej: 1,956 Open Connections..." aria-describedby="ayudaDatos"></textarea>
+    
+    <div class="botonera" role="group" aria-label="Controles del reporte XTREAM">
+      <button type="button" onclick="setServidor('REPORTE SERVIDOR 1 ✅')" aria-pressed="false">🔴 Servidor 1</button>
+      <button type="button" onclick="setServidor('REPORTE SERVIDOR NUEVO 2 ✅')" aria-pressed="false">🟢 Servidor 2</button>
+      <button type="button" onclick="filtrarReporte()">⚙️ Generar</button>
+      <button type="button" onclick="limpiarDatosXTREAM()">🧹 Limpiar</button>
+    </div>
+    
+    <textarea id="resultado" readonly ondblclick="copiarResultado('resultado')" aria-label="Resultado del reporte XTREAM" tabindex="0"></textarea>
+  </section>
+
+  <!-- CORE 1 -->
+  <section class="seccion" aria-label="Status Core 1">
+    <h2>STATUS CORE 1 ✅</h2>
+    <div class="fila">
+      <label for="sfp4">sfp4 SW_SD:</label>
+      <input type="number" step="0.1" id="sfp4" placeholder="2.8" aria-describedby="unidad4"/>
+      <select id="unidad4" aria-label="Unidad de sfp4">
+        <option>Gbps</option>
+        <option>Mbps</option>
+      </select>
+    </div>
+    <div class="fila">
+      <label for="sfp5">sfp5 SW IPTV CCR2004:</label>
+      <input type="number" step="0.1" id="sfp5" placeholder="3.2" aria-describedby="unidad5"/>
+      <select id="unidad5" aria-label="Unidad de sfp5">
+        <option>Gbps</option>
+        <option>Mbps</option>
+      </select>
+    </div>
+    <div class="fila">
+      <label for="sfp6">sfp6 SWITCH CRS317:</label>
+      <input type="number" step="0.1" id="sfp6" placeholder="5.4" aria-describedby="unidad6"/>
+      <select id="unidad6" aria-label="Unidad de sfp6">
+        <option>Gbps</option>
+        <option>Mbps</option>
+      </select>
+    </div>
+    <div class="botonera">
+      <button type="button" onclick="generarReporte1()">⚙️ Generar</button>
+      <button type="button" onclick="limpiarDatosCore1()">🧹 Limpiar</button>
+    </div>
+    <textarea id="resultado1" readonly ondblclick="copiarResultado('resultado1')" aria-label="Resultado status core 1" tabindex="0"></textarea>
+  </section>
+
+  <!-- CORE 2 -->
+  <section class="seccion" aria-label="Status Campoy Core 2">
+    <h2>STATUS CAMPOY CORE 2 ✅</h2>
+    <div class="fila">
+      <label for="sfp1_2">sfp1 SERVIDOR XTREAM 5TO PISO:</label>
+      <input type="number" step="0.1" id="sfp1_2" placeholder="4.9" aria-describedby="unidad1_2"/>
+      <select id="unidad1_2" aria-label="Unidad de sfp1_2">
+        <option>Gbps</option>
+        <option>Mbps</option>
+      </select>
+    </div>
+    <div class="fila">
+      <label for="sfp4_2">sfp4 PUBLIC LUMEN:</label>
+      <input type="number" step="0.1" id="sfp4_2" placeholder="317.7" aria-describedby="unidad4_2"/>
+      <select id="unidad4_2" aria-label="Unidad de sfp4_2">
+        <option>Gbps</option>
+        <option>Mbps</option>
+      </select>
+    </div>
+    <div class="fila">
+      <label for="sfp5_2">sfp5 CAMPOY ENLACE 2 -ODF 12 HILO:</label>
+      <input type="number" step="0.1" id="sfp5_2" placeholder="0" aria-describedby="unidad5_2"/>
+      <select id="unidad5_2" aria-label="Unidad de sfp5_2">
+        <option>Gbps</option>
+        <option>Mbps</option>
+      </select>
+    </div>
+    <div class="fila">
+      <label for="sfp6_2">sfp6 ATE_MK_9.1:</label>
+      <input type="number" step="0.1" id="sfp6_2" placeholder="4.6" aria-describedby="unidad6_2"/>
+      <select id="unidad6_2" aria-label="Unidad de sfp6_2">
+        <option>Gbps</option>
+        <option>Mbps</option>
+      </select>
+    </div>
+    <div class="botonera">
+      <button type="button" onclick="generarReporte2()">⚙️ Generar</button>
+      <button type="button" onclick="limpiarDatosCore2()">🧹 Limpiar</button>
+    </div>
+    <textarea id="resultado2" readonly ondblclick="copiarResultado('resultado2')" aria-label="Resultado status core 2" tabindex="0"></textarea>
+  </section>
+
+  <!-- MENSAJES -->
+  <div id="mensajeCopiado" role="alert" aria-live="assertive">✅ Copiado al portapapeles</div>
+  <div id="mensajeGenerado" role="alert" aria-live="assertive">⚙️ Resultado generado</div>
+
+  <!-- SCRIPTS -->
+  <script>
+    let lineaServidor = 'REPORTE SERVIDOR 1 ✅';
+
+    function setServidor(texto) {
+      lineaServidor = texto;
+      filtrarReporte();
+      actualizarBotonesServidor(texto);
+    }
+
+    function actualizarBotonesServidor(seleccionado) {
+      const botones = document.querySelectorAll('.botonera button');
+      botones.forEach(btn => {
+        btn.setAttribute('aria-pressed', btn.textContent.includes(seleccionado.split(' ')[2]) ? 'true' : 'false');
+      });
+    }
+
+    function obtenerFechaHora() {
+      const ahora = new Date();
+      const fecha = ahora.toLocaleDateString('es-PE', {
+        day: '2-digit', month: '2-digit', year: 'numeric'
+      });
+      const hora = ahora.toLocaleTimeString('es-PE', {
+        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+      });
+      return { fecha, hora };
+    }
+
+    function filtrarReporte() {
+      let texto = document.getElementById("inputDatos").value;
+      texto = texto.replace(/,/g, '');
+      const numeros = texto.match(/\d+/g);
+
+      if (!numeros || numeros.length < 4) {
+        alert("Faltan datos. Se esperan: Open Connections, Online Users, Online Streams, Offline Streams.");
+        return;
+      }
+
+      const { fecha, hora } = obtenerFechaHora();
+
+      const resultado = `${lineaServidor}
+CONEXIONES EN XTREAM
+OPEN CONNECTIONS: ${numeros[0]}
+ONLINE USERS: ${numeros[1]}
+ONLINE STREAMS: ${numeros[2]}
+OFFLINE STREAMS: ${numeros[3]}
+
+FECHA: ${fecha}
+HORA: ${hora}`;
+
+      document.getElementById("resultado").value = resultado;
+      mostrarMensaje('mensajeGenerado');
+    }
+
+    function generarReporte1() {
+      const { fecha, hora } = obtenerFechaHora();
+
+      const sfp4 = document.getElementById("sfp4").value || "0";
+      const unidad4 = document.getElementById("unidad4").value;
+      const sfp5 = document.getElementById("sfp5").value || "0";
+      const unidad5 = document.getElementById("unidad5").value;
+      const sfp6 = document.getElementById("sfp6").value || "0";
+      const unidad6 = document.getElementById("unidad6").value;
+
+      const texto = `STATUS CORE 1 ✅
+
+OBS: Ninguna
+
+sfp4 SW_SD ${sfp4} ${unidad4}
+sfp5 SW IPTV CCR2004 ${sfp5} ${unidad5}
+sfp6 SWITCH CRS317 ${sfp6} ${unidad6}
+
+FECHA: ${fecha}
+HORA: ${hora}`;
+
+      document.getElementById("resultado1").value = texto;
+      mostrarMensaje('mensajeGenerado');
+    }
+
+    function generarReporte2() {
+      const { fecha, hora } = obtenerFechaHora();
+
+      const sfp1 = document.getElementById("sfp1_2").value || "0";
+      const unidad1 = document.getElementById("unidad1_2").value;
+      const sfp4 = document.getElementById("sfp4_2").value || "0";
+      const unidad4 = document.getElementById("unidad4_2").value;
+      const sfp5 = document.getElementById("sfp5_2").value || "0";
+      const unidad5 = document.getElementById("unidad5_2").value;
+      const sfp6 = document.getElementById("sfp6_2").value || "0";
+      const unidad6 = document.getElementById("unidad6_2").value;
+
+      const texto = `STATUS CAMPOY CORE 2 ✅
+
+OBS: Ninguna
+
+sfp1 SERVIDOR XTREAM 5TO PISO ${sfp1} ${unidad1}
+sfp4 PUBLIC LUMEN ${sfp4} ${unidad4}
+sfp5 CAMPOY ENLACE 2 -ODF 12 HILO ${sfp5} ${unidad5}
+sfp6 ATE_MK_9.1 ${sfp6} ${unidad6}
+
+FECHA: ${fecha}
+HORA: ${hora}`;
+
+      document.getElementById("resultado2").value = texto;
+      mostrarMensaje('mensajeGenerado');
+    }
+
+    // 🔹 NUEVAS FUNCIONES DE LIMPIEZA
+    function limpiarDatosXTREAM() {
+      document.getElementById("inputDatos").value = "";
+      document.getElementById("resultado").value = "";
+    }
+
+    function limpiarDatosCore1() {
+      document.getElementById("sfp4").value = "";
+      document.getElementById("sfp5").value = "";
+      document.getElementById("sfp6").value = "";
+      document.getElementById("resultado1").value = "";
+    }
+
+    function limpiarDatosCore2() {
+      document.getElementById("sfp1_2").value = "";
+      document.getElementById("sfp4_2").value = "";
+      document.getElementById("sfp5_2").value = "";
+      document.getElementById("sfp6_2").value = "";
+      document.getElementById("resultado2").value = "";
+    }
+
+    function copiarResultado(id) {
+      const contenido = document.getElementById(id).value;
+      if (!contenido) return;
+      navigator.clipboard.writeText(contenido).then(() => {
+        mostrarMensaje('mensajeCopiado');
+      });
+    }
+
+    function mostrarMensaje(id) {
+      const el = document.getElementById(id);
+      el.classList.add('mostrar');
+      setTimeout(() => {
+        el.classList.remove('mostrar');
+      }, 2000);
+    }
+  </script>
+</body>
+</html>
